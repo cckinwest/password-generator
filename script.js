@@ -1,69 +1,64 @@
 // Assignment Code
-var generateBtn = document.querySelector("#generate");
+const generateBtn = document.querySelector("#generate");
+const regenerateBtn = document.querySelector("#regenerate");
+
+regenerateBtn.disabled = true; //before the first clicking of generateBtn, this button is disabled to avoid error.
+
+const types = ["lowercase", "uppercase", "numeric", "special"];
+const listOfAvaChar = [
+  "abcdefghijklmnopqrstuvwxyz",
+  "ABCDEFGJHIJKLMNOPQRSTUVWXYZ",
+  "0123456789",
+  "!()-.?[]_`~;:!#$%^&*+=",
+];
+
+let length = 0;
+let numOfTypes = 0;
+let includeTypes = [false, false, false, false];
+//After clicking generateBtn to generate pwd, these variables are set and their values saved. They can be used to regenerate the pwd using regenerateBtn.
 
 function shuffle(text) {
   let remainText = text;
-  let newText = ""
+  let newText = "";
   let textLen = text.length;
 
-  for (var i = 0; i < textLen; i++){
-    let index = Math.floor(Math.random()*remainText.length);
+  for (var i = 0; i < textLen; i++) {
+    let index = Math.floor(Math.random() * remainText.length);
     newText += remainText[index];
-    remainText = remainText.slice(0, index) + remainText.slice(index + 1, textLen);
+    remainText =
+      remainText.slice(0, index) + remainText.slice(index + 1, textLen);
   }
 
   return newText;
-}
+} //To shuffle the password at the end.
 
 function randomChunk(str, len) {
-  genChunk = ""
+  genChunk = "";
 
   for (var i = 0; i < len; i++) {
-    let index = Math.floor(Math.random()*str.length);
+    let index = Math.floor(Math.random() * str.length);
     genChunk += str[index];
   }
 
   return genChunk;
-}
+} //For each type of char, a random chunk is created as a part of the pwd. The chunks will finally be put together to form the password.
 
 function satisfyCriteria(typeOfChar) {
-  let isInvalid = true;
-  while (isInvalid) {
-    let response = prompt(`Does the password include ${typeOfChar}? (y/n)`)
-    if (response === "y") {
-      isInvalid = false;
-      return true;
-    } else if (response === "n") {
-      isInvalid = false;
-      return false;
-    } else {
-      alert("Your responses can only be 'y' or 'n'.")
-    }
-  }
-}
+  return confirm(`Do you want to include ${typeOfChar} in the password?`);
+} //Create prompt to ask for the selection of the type of char, and validate the input.
 
 function needCheckRepeat() {
-  let isInvalid = true;
-  while (isInvalid) {
-    let response = prompt(`Do you require the password to have no three consecutive characters the same? (y/n)`)
-    if (response === "y") {
-      isInvalid = false;
-      return true;
-    } else if (response === "n") {
-      isInvalid = false;
-      return false;
-    } else {
-      alert("Your responses can only be 'y' or 'n'.")
-    }
-  }
-}
+  return confirm(
+    `Do you require no three consecutive characters in the password the same?`
+  );
+} //Ask whether the user want extra security by avoiding the creation of pwd with more than 2 repetitive characters, for example abcd1111.
 
 function isRepeatThree(chunk) {
   let len = chunk.length;
   let repeat = 1;
 
   for (var i = 1; i < len; i++) {
-    if (chunk[i] === chunk[i-1]) {
+    if (chunk[i] === chunk[i - 1]) {
       repeat += 1;
       if (repeat === 3) {
         return true;
@@ -76,40 +71,54 @@ function isRepeatThree(chunk) {
   return false;
 }
 
+function genNumOfTypes() {
+  let remain = length;
+  let lenOfTypes = [0, 0, 0, 0];
+  let numOfRemainingTypes = numOfTypes;
+
+  for (var i = 0; i < types.length; i++) {
+    if (includeTypes[i]) {
+      let lenOfType;
+
+      if (numOfRemainingTypes > 1) {
+        lenOfType =
+          Math.floor(Math.random() * (remain - numOfRemainingTypes)) + 1;
+        remain -= lenOfType;
+        numOfRemainingTypes -= 1;
+      } else {
+        lenOfType = remain;
+      }
+
+      lenOfTypes[i] = lenOfType;
+    }
+  }
+
+  return lenOfTypes;
+}
+
 function generatePassword() {
   let isOutOfRange = true;
-  let length = 8;
+
+  let password = "";
+  length = 0;
+  numOfTypes = 0;
 
   while (isOutOfRange) {
-    length = prompt("What is the length of the password? (8-128)");
-    if ((length >= 8) && (length <= 128)) {
+    length = prompt("What is the length of the password? (8-128)", 8);
+    if (length >= 8 && length <= 128) {
       isOutOfRange = false;
     } else {
-      alert("Out of range! Please enter again.")
-    }  
+      alert("Out of range or your input is not a number. Please enter again.");
+    }
   }
-  
-  let remain = length;
-  let numOfTypes = 0;
-  let password = "";
+
   let noneIsSelected = true;
 
-  const lowerCaseCharacters = "abcdefghijklmnopqrstuvwxyz";
-  const upperCaseCharacters = "ABCDEFGJHIJKLMNOPQRSTUVWXYZ";
-  const numerics = "0123456789";
-  const specialCharacters = "!()-.?[]_`~;:!#$%^&*+=";
-
-  const types = ["lowercase", "uppercase", "numeric", "special"];
-  const listOfAvaChar = [lowerCaseCharacters, upperCaseCharacters, numerics, specialCharacters];
-  let includeTypes
-
   while (noneIsSelected) {
-    includeTypes = [];
-
     for (var i = 0; i < types.length; i++) {
       response = satisfyCriteria(types[i]);
-      includeTypes.push(response);
-      if(response) {
+      includeTypes[i] = response;
+      if (response) {
         numOfTypes += 1;
       }
     }
@@ -117,30 +126,11 @@ function generatePassword() {
     if (numOfTypes > 0) {
       noneIsSelected = false;
     } else {
-      alert("You have to choose at least one type of character!")
+      alert("You have to choose at least one type of character!");
     }
   }
 
-  let lenOfTypes = [];
-
-  for (var i = 0; i < types.length; i++) {
-    if (includeTypes[i]) {
-      let lenOfType;
-
-      if (numOfTypes > 1) {
-        lenOfType = Math.floor(Math.random()*(remain - numOfTypes)) + 1;
-        remain -= lenOfType;
-        numOfTypes -= 1;        
-      } else {
-        lenOfType = remain;
-      }
-
-      lenOfTypes.push(lenOfType);
-
-    } else {
-      lenOfTypes.push(0);
-    }
-  }
+  let lenOfTypes = genNumOfTypes();
 
   if (needCheckRepeat()) {
     let RepeatThree = true;
@@ -148,20 +138,33 @@ function generatePassword() {
     while (RepeatThree) {
       for (var i = 0; i < types.length; i++) {
         password += randomChunk(listOfAvaChar[i], lenOfTypes[i]);
-      }      
+      }
 
       password = shuffle(password);
-      RepeatThree = isRepeatThree(password);  
+      RepeatThree = isRepeatThree(password);
     }
   } else {
     for (var i = 0; i < types.length; i++) {
       password += randomChunk(listOfAvaChar[i], lenOfTypes[i]);
     }
-    
+
     password = shuffle(password);
-  }  
+  }
 
   return password;
+}
+
+function regenerate() {
+  let password = "";
+  let lenOfTypes = genNumOfTypes();
+
+  for (var i = 0; i < types.length; i++) {
+    password += randomChunk(listOfAvaChar[i], lenOfTypes[i]);
+  }
+
+  var passwordText = document.querySelector("#password");
+
+  passwordText.value = shuffle(password);
 }
 
 // Write password to the #password input
@@ -170,8 +173,9 @@ function writePassword() {
   var passwordText = document.querySelector("#password");
 
   passwordText.value = password;
-
+  regenerateBtn.disabled = false;
 }
 
 // Add event listener to generate button
 generateBtn.addEventListener("click", writePassword);
+regenerateBtn.addEventListener("click", regenerate);
