@@ -5,6 +5,7 @@ const regenerateBtn = document.querySelector("#regenerate");
 regenerateBtn.disabled = true; //before the first clicking of generateBtn, this button is disabled to avoid error.
 
 const types = ["lowercase", "uppercase", "numeric", "special"];
+
 const listOfAvaChar = [
   "abcdefghijklmnopqrstuvwxyz",
   "ABCDEFGJHIJKLMNOPQRSTUVWXYZ",
@@ -61,10 +62,12 @@ function isRepeatThree(chunk) {
     if (chunk[i] === chunk[i - 1]) {
       repeat += 1;
       if (repeat === 3) {
+        //'repeat' count the number of repeated characters
         return true;
       }
     } else {
       repeat = 1;
+      //once there is a chunk of repeated two characters, and the thrid is another, then the 'repeat' will reinitialize.
     }
   }
 
@@ -72,7 +75,7 @@ function isRepeatThree(chunk) {
 }
 
 function genNumOfTypes() {
-  let remain = length;
+  let remain = length; //'remain' count the number of remaining digits of the pwd to be allocated.
   let lenOfTypes = [0, 0, 0, 0];
   let numOfRemainingTypes = numOfTypes;
 
@@ -83,10 +86,12 @@ function genNumOfTypes() {
       if (numOfRemainingTypes > 1) {
         lenOfType =
           Math.floor(Math.random() * (remain - numOfRemainingTypes)) + 1;
+        // create a random number of characters for each type of characters selected
+        // '+1' to ensure that the number of characters is at least one.
         remain -= lenOfType;
         numOfRemainingTypes -= 1;
       } else {
-        lenOfType = remain;
+        lenOfType = remain; //if it's the last type selected
       }
 
       lenOfTypes[i] = lenOfType;
@@ -97,19 +102,20 @@ function genNumOfTypes() {
 }
 
 function generatePassword() {
-  let isOutOfRange = true;
-
   let password = "";
   length = 0;
   numOfTypes = 0;
 
+  let isOutOfRange = true;
+
   while (isOutOfRange) {
-    length = prompt("What is the length of the password? (8-128)", 8);
+    length = prompt("What is the length of the password you want to generate?");
+
     if (length >= 8 && length <= 128) {
       isOutOfRange = false;
     } else {
-      alert("Out of range or your input is not a number. Please enter again.");
-    }
+      alert("Out of range! Please enter again.");
+    } //validate the length to be within the range 8-128
   }
 
   let noneIsSelected = true;
@@ -119,7 +125,7 @@ function generatePassword() {
       response = satisfyCriteria(types[i]);
       includeTypes[i] = response;
       if (response) {
-        numOfTypes += 1;
+        numOfTypes += 1; //count the number of types selected
       }
     }
 
@@ -138,9 +144,10 @@ function generatePassword() {
     while (RepeatThree) {
       for (var i = 0; i < types.length; i++) {
         password += randomChunk(listOfAvaChar[i], lenOfTypes[i]);
-      }
+      } //generate a random chunk for each type of selected character, then concat
 
       password = shuffle(password);
+      //otherwise characters of the same type will be put together which is not good for security
       RepeatThree = isRepeatThree(password);
     }
   } else {
@@ -165,15 +172,19 @@ function regenerate() {
   var passwordText = document.querySelector("#password");
 
   passwordText.value = shuffle(password);
-}
+} //if the user does not like the password generated, use it to regenerate using the same criteria.
 
 // Write password to the #password input
 function writePassword() {
-  var password = generatePassword();
-  var passwordText = document.querySelector("#password");
+  const timeout = setTimeout(() => {
+    var password = generatePassword();
+    var passwordText = document.querySelector("#password");
 
-  passwordText.value = password;
-  regenerateBtn.disabled = false;
+    passwordText.value = password;
+    regenerateBtn.disabled = false;
+  }, 500); //it delays the main part of the code by 0.5s, so that the regenerate button is disabled first.
+
+  regenerateBtn.disabled = true;
 }
 
 // Add event listener to generate button
